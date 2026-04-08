@@ -1,0 +1,55 @@
+import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+
+import { AuthProvider } from './context/AuthContext'
+import { ProtectedRoute, AdminRoute } from './components/ui/ProtectedRoute'
+import CustomCursor from './components/ui/CustomCursor'
+import HomePage from './pages/HomePage'
+import Login from './pages/Login'
+import Signup from './pages/Signup'
+import AdminDashboard from './pages/admin/Dashboard'
+import EventsPage from './pages/EventsPage'
+import ChallengesPage from './pages/ChallengesPage'
+import TeamPage from './pages/TeamPage'
+import ProjectsPage from './pages/ProjectsPage'
+import GalleryPage from './pages/GalleryPage'
+import LeaderboardPage from './pages/LeaderboardPage'
+import DashboardPage from './pages/DashboardPage'
+
+const queryClient = new QueryClient()
+
+function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <BrowserRouter>
+        <AuthProvider>
+          <CustomCursor />
+          <Routes>
+            {/* Public routes */}
+            <Route path="/" element={<HomePage />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<Signup />} />
+            <Route path="/events" element={<EventsPage />} />
+            <Route path="/challenges" element={<ChallengesPage />} />
+            <Route path="/team" element={<TeamPage />} />
+            <Route path="/projects" element={<ProjectsPage />} />
+            <Route path="/gallery" element={<GalleryPage />} />
+            <Route path="/leaderboard" element={<LeaderboardPage />} />
+
+            {/* Protected — must be logged in */}
+            <Route path="/dashboard" element={
+              <ProtectedRoute><DashboardPage /></ProtectedRoute>
+            } />
+
+            {/* Admin only */}
+            <Route path="/admin" element={
+              <AdminRoute><AdminDashboard /></AdminRoute>
+            } />
+          </Routes>
+        </AuthProvider>
+      </BrowserRouter>
+    </QueryClientProvider>
+  )
+}
+
+export default App
