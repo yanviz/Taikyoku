@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import PublicLayout from '../components/layouts/PublicLayout'
 import { api } from '../lib/api'
@@ -108,7 +108,7 @@ const EventsPage = () => {
                 const accentText = accentClass[ev.accent] ?? 'text-primary'
 
                 return (
-                  <div key={ev.id} className="lab-panel group flex flex-col">
+                  <div key={ev.id} className="lab-panel group flex flex-col relative">
                     <div className="h-52 relative overflow-hidden grayscale group-hover:grayscale-0 transition-all duration-500">
                       <div className="w-full h-full bg-surface-container-high flex items-center justify-center">
                         <span className="material-symbols-outlined text-5xl text-on-surface-variant/30">event</span>
@@ -121,9 +121,11 @@ const EventsPage = () => {
                       <div className={`text-[10px] font-mono font-bold tracking-[0.3em] mb-3 ${accentText}`}>
                         {ev.date} · {ev.location}
                       </div>
-                      <h3 className="text-xl font-black uppercase mb-3 leading-tight group-hover:text-primary transition-colors">
-                        {ev.title}
-                      </h3>
+                      <Link to={`/events/${ev.id}`} className="after:absolute after:inset-0">
+                        <h3 className="text-xl font-black uppercase mb-3 leading-tight group-hover:text-primary transition-colors">
+                          {ev.title}
+                        </h3>
+                      </Link>
                       <p className="text-sm text-on-surface-variant mb-6 flex-1 font-body">{ev.description}</p>
 
                       {/* Slots */}

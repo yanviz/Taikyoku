@@ -23,6 +23,20 @@ export const authenticate = (req: Request, res: Response, next: NextFunction): v
   }
 }
 
+// Does not fail if no token — just attaches user if present
+export const optionalAuth = (req: Request, _res: Response, next: NextFunction): void => {
+  const header = req.headers.authorization
+  if (header?.startsWith('Bearer ')) {
+    try {
+      const decoded = jwt.verify(header.slice(7), JWT_SECRET) as JwtPayload
+      req.user = decoded
+    } catch {
+      // ignore invalid token — just proceed without user
+    }
+  }
+  next()
+}
+
 export const adminOnly = (req: Request, res: Response, next: NextFunction): void => {
   if (!req.user) {
     res.status(401).json({ error: 'Not authenticated' })

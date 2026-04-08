@@ -15,6 +15,8 @@ import ProjectsPage from './pages/ProjectsPage'
 import GalleryPage from './pages/GalleryPage'
 import LeaderboardPage from './pages/LeaderboardPage'
 import DashboardPage from './pages/DashboardPage'
+import EventDetailPage from './pages/EventDetailPage'
+import ChallengeDetailPage from './pages/ChallengeDetailPage'
 
 const queryClient = new QueryClient()
 
@@ -30,7 +32,9 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
             <Route path="/events" element={<EventsPage />} />
+            <Route path="/events/:id" element={<EventDetailPage />} />
             <Route path="/challenges" element={<ChallengesPage />} />
+            <Route path="/challenges/:id" element={<ChallengeDetailPage />} />
             <Route path="/team" element={<TeamPage />} />
             <Route path="/projects" element={<ProjectsPage />} />
             <Route path="/gallery" element={<GalleryPage />} />

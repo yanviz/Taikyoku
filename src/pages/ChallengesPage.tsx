@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import PublicLayout from '../components/layouts/PublicLayout'
 import { api } from '../lib/api'
@@ -128,7 +128,7 @@ const ChallengesPage = () => {
                 const completionPct = Math.round((ch.completions / ch.participants) * 100)
 
                 return (
-                  <div key={ch.id} className={`lab-panel p-8 flex flex-col group ${diffBorder[ch.difficulty]}`}>
+                  <div key={ch.id} className={`lab-panel p-8 flex flex-col group relative ${diffBorder[ch.difficulty]}`}>
                     <div className="flex justify-between items-start mb-8">
                       <span className="material-symbols-outlined text-3xl text-on-surface-variant group-hover:text-primary transition-colors">
                         {iconMap[ch.difficulty] ?? 'terminal'}
@@ -137,9 +137,11 @@ const ChallengesPage = () => {
                         {ch.difficulty}
                       </span>
                     </div>
-                    <h3 className="text-xl font-black uppercase mb-4 italic leading-tight group-hover:text-primary transition-colors">
-                      {ch.title}
-                    </h3>
+                    <Link to={`/challenges/${ch.id}`} className="after:absolute after:inset-0">
+                      <h3 className="text-xl font-black uppercase mb-4 italic leading-tight group-hover:text-primary transition-colors">
+                        {ch.title}
+                      </h3>
+                    </Link>
                     <p className="text-xs text-on-surface-variant mb-4 font-body leading-relaxed flex-1">{ch.description}</p>
 
                     {/* Tags */}

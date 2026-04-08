@@ -4,7 +4,8 @@ import { users } from '../data/users'
 import { events } from '../data/events'
 import { challenges } from '../data/challenges'
 import { projects } from '../data/projects'
-import type { Event, Challenge } from '../types'
+import { gallery } from '../data/gallery'
+import type { Event, Challenge, Project, GalleryPhoto } from '../types'
 
 const router = Router()
 
@@ -141,6 +142,78 @@ router.delete('/challenges/:id', (req, res): void => {
   const idx = challenges.findIndex((c) => c.id === req.params.id)
   if (idx === -1) { res.status(404).json({ error: 'Challenge not found' }); return }
   challenges.splice(idx, 1)
+  res.json({ message: 'Deleted' })
+})
+
+// ── Gallery CRUD ───────────────────────────────────────────────────────────
+
+router.get('/gallery', (_req, res) => {
+  res.json(gallery)
+})
+
+router.post('/gallery', (req, res): void => {
+  const { tag, year, label, span, img } = req.body as Partial<GalleryPhoto>
+  if (!tag || !year || !label || !img) {
+    res.status(400).json({ error: 'tag, year, label, img are required' })
+    return
+  }
+  const newPhoto: GalleryPhoto = {
+    id: `g${Date.now()}`,
+    tag,
+    year,
+    label,
+    span: span ?? '',
+    img,
+  }
+  gallery.push(newPhoto)
+  res.status(201).json(newPhoto)
+})
+
+router.delete('/gallery/:id', (req, res): void => {
+  const idx = gallery.findIndex((g) => g.id === req.params.id)
+  if (idx === -1) { res.status(404).json({ error: 'Photo not found' }); return }
+  gallery.splice(idx, 1)
+  res.json({ message: 'Deleted' })
+})
+
+// ── Projects CRUD ──────────────────────────────────────────────────────────
+
+router.get('/projects', (_req, res) => {
+  res.json(projects)
+})
+
+router.post('/projects', (req, res): void => {
+  const { title, description, status, tech, stars, forks, img } = req.body as Partial<Project>
+  if (!title || !description || !status) {
+    res.status(400).json({ error: 'title, description, status are required' })
+    return
+  }
+  const newProject: Project = {
+    id: `p${Date.now()}`,
+    title,
+    description,
+    status: status as Project['status'],
+    tech: tech ?? [],
+    stars: Number(stars ?? 0),
+    forks: Number(forks ?? 0),
+    img: img ?? '',
+  }
+  projects.push(newProject)
+  res.status(201).json(newProject)
+})
+
+router.patch('/projects/:id', (req, res): void => {
+  const project = projects.find((p) => p.id === req.params.id)
+  if (!project) { res.status(404).json({ error: 'Project not found' }); return }
+  const fields = req.body as Partial<Project>
+  Object.assign(project, fields)
+  res.json(project)
+})
+
+router.delete('/projects/:id', (req, res): void => {
+  const idx = projects.findIndex((p) => p.id === req.params.id)
+  if (idx === -1) { res.status(404).json({ error: 'Project not found' }); return }
+  projects.splice(idx, 1)
   res.json({ message: 'Deleted' })
 })
 
