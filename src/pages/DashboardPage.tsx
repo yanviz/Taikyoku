@@ -2,6 +2,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { api } from '../lib/api'
 import { useAuth } from '../context/AuthContext'
+import { useTheme } from '../context/ThemeContext'
 
 interface DashboardData {
   user: {
@@ -19,6 +20,7 @@ const fetchDashboard = () => api.get<DashboardData>('/dashboard').then((r) => r.
 const DashboardPage = () => {
   const { logout, user: authUser } = useAuth()
   const navigate = useNavigate()
+  const { theme, toggle } = useTheme()
 
   const { data, isLoading, isError } = useQuery({ queryKey: ['dashboard'], queryFn: fetchDashboard })
 
@@ -59,6 +61,12 @@ const DashboardPage = () => {
           {authUser?.role === 'admin' && (
             <Link to="/admin" className="text-xs font-mono uppercase tracking-widest text-primary hover:text-white transition-colors">Admin</Link>
           )}
+          <button
+            onClick={toggle}
+            className="w-8 h-8 flex items-center justify-center border border-white/10 text-on-surface-variant hover:text-primary hover:border-primary/50 transition-colors"
+          >
+            <span className="material-symbols-outlined text-sm">{theme === 'dark' ? 'light_mode' : 'dark_mode'}</span>
+          </button>
           <button onClick={handleLogout} className="text-xs font-mono uppercase tracking-widest text-on-surface-variant hover:text-error transition-colors">
             Logout
           </button>

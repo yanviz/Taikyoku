@@ -12,6 +12,7 @@ export const events: Event[] = [
     status: 'Open',
     location: 'Lab 3B',
     accent: '#d3ef57',
+    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAXn_-T0r_UBnvyAglmFKHY5SDS8pe33avm0AXhQOgO_pWfjILY84z7cCOrT4CTe95irAZzgKBdWIsp8vx0GeYXYcf_udQPu3L3nIySJOsv7pJBVdGGs6CwVm9O_Azd4FefJSyt2cki706imdO1WQYLTEl_zC2TDvSbK9zOzN75S0gBbzlIQwKEID519kvxQnq51eJSpZE1FV_Au4nYRrLUr8P0hHQGIiFsYLu-xecP_ErTnk6-Yi-o1TEkEU3C3JeIKskJgXfswg',
   },
   {
     id: 'ev2',
@@ -24,6 +25,7 @@ export const events: Event[] = [
     status: 'Full',
     location: 'Main Auditorium',
     accent: '#dbb8ff',
+    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAv5Fzz17-szQHNuORsgeozQsFTnlFtyDmKKZABXD6NDOwCS8wG9dfPcPugyI2fqMSQ-R3VQ-pZRZ05Hyz1QrHqCvePVKU3pW_ZxHyBegnLjB5e-ja2ZR3c_TYaslwbUtI17NhK2IKwJK7zGiXCAZThPCKhsKzwf13jHViOFnPbe9bL3lDhSiqgQlytPnWaoJl0g3h_oJLmbjmssITVnJ1E_29Gous4Rw_EVZpKUm6rwGFCxl1vEA9p7WrBp5jU0HovIs95LTFRlQ',
   },
   {
     id: 'ev3',
@@ -36,6 +38,7 @@ export const events: Event[] = [
     status: 'Open',
     location: 'Rooftop Lounge',
     accent: '#74facb',
+    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCyENExTqDtoPgcm5nWzFqYCTIRFSbzmt41nIWHDgRTjWX8uSafcHb9rBFoGB6Al9amVPPF-QZXmHuAyme642ZKhf_n2v2esKFcgW1ys-uVfpGshzCH12SU_EOcSh7UYYNO0jR1Gv2Z1Q8wr203PGk1GiF8eqdL9CguEVeKMU0Hswl6olj5zZbXehtJj2hbmzutKkCZqOTyZNu6kg3D8Hi8as7IpnQUi-pdE4-DdckYYp8oTWVFvJgT-_xVHKe4AHajTnloCcvQfg',
   },
   {
     id: 'ev4',
@@ -48,6 +51,7 @@ export const events: Event[] = [
     status: 'Open',
     location: 'Online',
     accent: '#ffb4ab',
+    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAXn_-T0r_UBnvyAglmFKHY5SDS8pe33avm0AXhQOgO_pWfjILY84z7cCOrT4CTe95irAZzgKBdWIsp8vx0GeYXYcf_udQPu3L3nIySJOsv7pJBVdGGs6CwVm9O_Azd4FefJSyt2cki706imdO1WQYLTEl_zC2TDvSbK9zOzN75S0gBbzlIQwKEID519kvxQnq51eJSpZE1FV_Au4nYRrLUr8P0hHQGIiFsYLu-xecP_ErTnk6-Yi-o1TEkEU3C3JeIKskJgXfswg',
   },
   {
     id: 'ev5',
@@ -60,6 +64,7 @@ export const events: Event[] = [
     status: 'Closing Soon',
     location: 'GPU Lab',
     accent: '#dbb8ff',
+    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCyENExTqDtoPgcm5nWzFqYCTIRFSbzmt41nIWHDgRTjWX8uSafcHb9rBFoGB6Al9amVPPF-QZXmHuAyme642ZKhf_n2v2esKFcgW1ys-uVfpGshzCH12SU_EOcSh7UYYNO0jR1Gv2Z1Q8wr203PGk1GiF8eqdL9CguEVeKMU0Hswl6olj5zZbXehtJj2hbmzutKkCZqOTyZNu6kg3D8Hi8as7IpnQUi-pdE4-DdckYYp8oTWVFvJgT-_xVHKe4AHajTnloCcvQfg',
   },
   {
     id: 'ev6',
@@ -72,6 +77,7 @@ export const events: Event[] = [
     status: 'Open',
     location: 'Lab 2A',
     accent: '#d3ef57',
+    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAv5Fzz17-szQHNuORsgeozQsFTnlFtyDmKKZABXD6NDOwCS8wG9dfPcPugyI2fqMSQ-R3VQ-pZRZ05Hyz1QrHqCvePVKU3pW_ZxHyBegnLjB5e-ja2ZR3c_TYaslwbUtI17NhK2IKwJK7zGiXCAZThPCKhsKzwf13jHViOFnPbe9bL3lDhSiqgQlytPnWaoJl0g3h_oJLmbjmssITVnJ1E_29Gous4Rw_EVZpKUm6rwGFCxl1vEA9p7WrBp5jU0HovIs95LTFRlQ',
   },
 ]
 

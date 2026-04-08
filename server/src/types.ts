@@ -35,6 +35,7 @@ export interface Event {
   status: string
   location: string
   accent: string
+  image?: string
 }
 
 export interface Challenge {

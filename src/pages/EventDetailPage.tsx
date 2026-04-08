@@ -8,7 +8,7 @@ interface EventDetail {
   id: string; type: string; date: string; title: string
   description: string; slots: number; total: number
   status: string; location: string; accent: string
-  enrolledByMe: boolean
+  image?: string; enrolledByMe: boolean
 }
 
 const typeColor: Record<string, string> = {
@@ -116,6 +116,13 @@ const EventDetailPage = () => {
           </Link>
         </div>
       </div>
+
+      {/* Hero image */}
+      {event.image && (
+        <div className="w-full h-64 md:h-80 overflow-hidden">
+          <img src={event.image} alt={event.title} className="w-full h-full object-cover" />
+        </div>
+      )}
 
       {/* Hero */}
       <section className="py-16 px-8 bg-[#0A0A0A] border-b border-white/5">

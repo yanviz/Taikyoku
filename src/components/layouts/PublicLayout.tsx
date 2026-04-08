@@ -1,5 +1,6 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
+import { useTheme } from '../../context/ThemeContext'
 
 const navLinks = [
   { label: 'Events', to: '/events' },
@@ -14,6 +15,7 @@ const PublicLayout = ({ children }: { children: React.ReactNode }) => {
   const { pathname } = useLocation()
   const navigate = useNavigate()
   const { user, logout } = useAuth()
+  const { theme, toggle } = useTheme()
 
   const handleLogout = () => {
     logout()
@@ -57,6 +59,13 @@ const PublicLayout = ({ children }: { children: React.ReactNode }) => {
             ))}
           </div>
           <div className="flex items-center space-x-6">
+            <button
+              onClick={toggle}
+              className="w-8 h-8 flex items-center justify-center border border-white/10 text-on-surface-variant hover:text-primary hover:border-primary/50 transition-colors"
+              title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+            >
+              <span className="material-symbols-outlined text-sm">{theme === 'dark' ? 'light_mode' : 'dark_mode'}</span>
+            </button>
             {user ? (
               <>
                 {user.role === 'admin' && (

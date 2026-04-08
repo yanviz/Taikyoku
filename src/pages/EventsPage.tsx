@@ -11,7 +11,7 @@ type Filter = typeof FILTERS[number]
 interface Event {
   id: string; type: string; date: string; title: string
   description: string; slots: number; total: number
-  status: string; location: string; accent: string
+  status: string; location: string; accent: string; image?: string
 }
 
 const typeColor: Record<string, string> = {
@@ -110,9 +110,12 @@ const EventsPage = () => {
                 return (
                   <div key={ev.id} className="lab-panel group flex flex-col relative">
                     <div className="h-52 relative overflow-hidden grayscale group-hover:grayscale-0 transition-all duration-500">
-                      <div className="w-full h-full bg-surface-container-high flex items-center justify-center">
-                        <span className="material-symbols-outlined text-5xl text-on-surface-variant/30">event</span>
-                      </div>
+                      {ev.image
+                      ? <img src={ev.image} alt={ev.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                      : <div className="w-full h-full bg-surface-container-high flex items-center justify-center">
+                          <span className="material-symbols-outlined text-5xl text-on-surface-variant/30">event</span>
+                        </div>
+                    }
                       <div className={`absolute top-0 right-0 px-3 py-1.5 text-[10px] font-mono font-bold uppercase tracking-widest ${typeColor[ev.type] ?? 'bg-primary text-on-primary'}`}>
                         {ev.type}
                       </div>

@@ -3,19 +3,20 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { api } from '../../lib/api'
 import { useAuth } from '../../context/AuthContext'
+import { useTheme } from '../../context/ThemeContext'
 
 type Tab = 'overview' | 'members' | 'events' | 'challenges' | 'gallery' | 'projects'
 
 interface Stats { totalMembers: number; activeEvents: number; totalEvents: number; totalChallenges: number; totalProjects: number; totalXpAwarded: number }
 interface Member { id: string; email: string; name: string; role: string; xp: number; badge: string; track: string; streak: number; challenges: number; createdAt: string }
-interface Event { id: string; type: string; date: string; title: string; description: string; slots: number; total: number; status: string; location: string; accent: string }
+interface Event { id: string; type: string; date: string; title: string; description: string; slots: number; total: number; status: string; location: string; accent: string; image?: string }
 interface Challenge { id: string; title: string; difficulty: string; xp: number; pool: number; completions: number; participants: number; tags: string[]; description: string }
 interface GalleryPhoto { id: string; tag: string; year: string; label: string; span: string; img: string }
 interface Project { id: string; title: string; description: string; status: string; tech: string[]; stars: number; forks: number; img: string }
 
 const DIFF_COLORS: Record<string, string> = { Legendary: 'text-primary', Hard: 'text-error', Medium: 'text-secondary', Easy: 'text-tertiary-fixed' }
 
-const blankEvent = (): Partial<Event> => ({ type: 'Workshop', date: '', title: '', description: '', slots: 30, total: 30, status: 'Open', location: '', accent: '#d3ef57' })
+const blankEvent = (): Partial<Event> => ({ type: 'Workshop', date: '', title: '', description: '', slots: 30, total: 30, status: 'Open', location: '', accent: '#d3ef57', image: '' })
 const blankChallenge = (): Partial<Challenge> => ({ title: '', difficulty: 'Medium', xp: 500, pool: 2500, description: '', tags: [] })
 const blankPhoto = (): Partial<GalleryPhoto> => ({ tag: 'Workshops', year: '2026', label: '', span: '', img: '' })
 const blankProject = (): Partial<Project> => ({ title: '', description: '', status: 'Beta', tech: [], stars: 0, forks: 0, img: '' })
@@ -25,6 +26,7 @@ const AdminDashboard = () => {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
+  const { theme, toggle } = useTheme()
 
   // Modal state
   const [eventModal, setEventModal] = useState<{ open: boolean; data: Partial<Event>; editing: boolean }>({ open: false, data: blankEvent(), editing: false })
@@ -148,6 +150,10 @@ const AdminDashboard = () => {
                 <div className="text-[10px] text-primary font-mono uppercase">Admin</div>
               </div>
             </div>
+            <button onClick={toggle} className="w-full flex items-center px-4 py-2 text-slate-400 hover:text-primary transition-colors">
+              <span className="material-symbols-outlined mr-3 text-sm">{theme === 'dark' ? 'light_mode' : 'dark_mode'}</span>
+              <span className="font-mono uppercase tracking-wider text-xs font-bold">{theme === 'dark' ? 'Light Mode' : 'Dark Mode'}</span>
+            </button>
             <Link to="/" className="flex items-center px-4 py-2 text-slate-400 hover:text-white transition-colors">
               <span className="material-symbols-outlined mr-3 text-sm">home</span>
               <span className="font-mono uppercase tracking-wider text-xs font-bold">Site Home</span>
@@ -490,6 +496,7 @@ const AdminDashboard = () => {
                 { field: 'date', label: 'Date (e.g. MAY 24)', type: 'text' },
                 { field: 'location', label: 'Location', type: 'text' },
                 { field: 'description', label: 'Description', type: 'textarea' },
+                { field: 'image', label: 'Image URL (optional)', type: 'text' },
                 { field: 'slots', label: 'Available Slots', type: 'number' },
                 { field: 'total', label: 'Total Capacity', type: 'number' },
                 { field: 'status', label: 'Status', type: 'select', options: ['Open', 'Full', 'Closing Soon'] },
@@ -521,6 +528,11 @@ const AdminDashboard = () => {
                 </div>
               ))}
             </div>
+            {eventModal.data.image && (
+              <div className="px-6 pb-4">
+                <img src={eventModal.data.image} alt="preview" className="w-full h-32 object-cover border border-outline-variant/20" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }} />
+              </div>
+            )}
             <div className="p-6 border-t border-outline-variant/10 flex gap-3 justify-end">
               <button onClick={() => setEventModal({ open: false, data: blankEvent(), editing: false })} className="px-4 py-2 text-xs font-mono uppercase text-on-surface-variant hover:text-white border border-outline-variant/30 hover:border-white/30 transition-colors">
                 Cancel
