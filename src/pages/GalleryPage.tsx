@@ -19,6 +19,7 @@ const fetchGallery = () => api.get<GalleryPhoto[]>('/gallery').then((r) => r.dat
 
 const GalleryPage = () => {
   const [tab, setTab] = useState<Tab>('All')
+  const [lightbox, setLightbox] = useState<GalleryPhoto | null>(null)
   const { data: photos = [], isLoading } = useQuery({ queryKey: ['gallery'], queryFn: fetchGallery })
 
   const filtered = tab === 'All' ? photos : photos.filter((p) =>
@@ -70,7 +71,11 @@ const GalleryPage = () => {
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 auto-rows-[200px]">
               {filtered.map((p) => (
-                <div key={p.id} className={`relative overflow-hidden group ${p.span}`}>
+                <div
+                  key={p.id}
+                  className={`relative overflow-hidden group cursor-pointer ${p.span}`}
+                  onClick={() => setLightbox(p)}
+                >
                   <img
                     alt={p.label}
                     className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700 group-hover:scale-105"
@@ -92,6 +97,35 @@ const GalleryPage = () => {
           )}
         </div>
       </section>
+
+      {/* Lightbox */}
+      {lightbox && (
+        <div
+          className="fixed inset-0 z-[200] bg-black/90 backdrop-blur-sm flex items-center justify-center p-4"
+          onClick={() => setLightbox(null)}
+        >
+          <button
+            className="absolute top-6 right-6 w-10 h-10 border border-white/20 flex items-center justify-center text-white hover:border-primary hover:text-primary transition-colors"
+            onClick={() => setLightbox(null)}
+          >
+            <span className="material-symbols-outlined">close</span>
+          </button>
+          <div
+            className="max-w-5xl w-full"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <img
+              src={lightbox.img}
+              alt={lightbox.label}
+              className="w-full max-h-[80vh] object-contain"
+            />
+            <div className="mt-4 flex items-center gap-4">
+              <span className="text-[10px] font-mono font-black uppercase tracking-widest text-primary">{lightbox.tag} / {lightbox.year}</span>
+              <span className="text-white font-headline font-bold uppercase text-sm">{lightbox.label}</span>
+            </div>
+          </div>
+        </div>
+      )}
     </PublicLayout>
   )
 }

@@ -1,11 +1,18 @@
+import { useRef } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 
 const HomePage = () => {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
+  const eventScrollRef = useRef<HTMLDivElement>(null)
 
   const handleLogout = () => { logout(); navigate('/login') }
+
+  const scrollEvents = (dir: 'left' | 'right') => {
+    if (!eventScrollRef.current) return
+    eventScrollRef.current.scrollBy({ left: dir === 'left' ? -450 : 450, behavior: 'smooth' })
+  }
 
   return (
     <div className="bg-[#0A0A0A] text-white selection:bg-primary/30 font-headline">
@@ -165,15 +172,15 @@ const HomePage = () => {
               <div className="h-1 w-24 bg-primary" />
             </div>
             <div className="flex gap-2">
-              <button className="w-10 h-10 border border-white/10 flex items-center justify-center hover:bg-white/5 text-on-surface-variant transition-all">
+              <button onClick={() => scrollEvents('left')} className="w-10 h-10 border border-white/10 flex items-center justify-center hover:bg-white/5 text-on-surface-variant transition-all">
                 <span className="material-symbols-outlined text-sm">west</span>
               </button>
-              <button className="w-10 h-10 border border-white/10 flex items-center justify-center hover:bg-white/5 text-on-surface-variant transition-all">
+              <button onClick={() => scrollEvents('right')} className="w-10 h-10 border border-white/10 flex items-center justify-center hover:bg-white/5 text-on-surface-variant transition-all">
                 <span className="material-symbols-outlined text-sm">east</span>
               </button>
             </div>
           </div>
-          <div className="flex gap-8 overflow-x-auto pb-12 snap-x no-scrollbar">
+          <div ref={eventScrollRef} className="flex gap-8 overflow-x-auto pb-12 snap-x no-scrollbar">
             {/* Event Card 1 */}
             <div className="flex-none w-[420px] snap-center lab-panel group">
               <div className="h-60 relative overflow-hidden grayscale group-hover:grayscale-0 transition-all duration-500">
