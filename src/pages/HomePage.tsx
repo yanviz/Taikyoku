@@ -1,6 +1,21 @@
 import { useRef } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { useQuery } from '@tanstack/react-query'
+import { api } from '../lib/api'
 import { useAuth } from '../context/AuthContext'
+
+interface Event {
+  id: string; type: string; date: string; title: string
+  description: string; slots: number; total: number
+  status: string; location: string; accent: string
+}
+
+const typeColor: Record<string, string> = {
+  Workshop: 'bg-primary text-on-primary',
+  Hackathon: 'bg-white text-black',
+  Meetup: 'bg-primary text-on-primary',
+  Competition: 'bg-error text-on-error',
+}
 
 const HomePage = () => {
   const { user, logout } = useAuth()
@@ -8,6 +23,11 @@ const HomePage = () => {
   const eventScrollRef = useRef<HTMLDivElement>(null)
 
   const handleLogout = () => { logout(); navigate('/login') }
+
+  const { data: events = [] } = useQuery<Event[]>({
+    queryKey: ['events'],
+    queryFn: () => api.get<Event[]>('/events').then(r => r.data),
+  })
 
   const scrollEvents = (dir: 'left' | 'right') => {
     if (!eventScrollRef.current) return
@@ -165,97 +185,66 @@ const HomePage = () => {
         </section>
 
         {/* Upcoming Events */}
-        <section className="py-24 px-8 bg-[#0A0A0A]">
-          <div className="max-w-[1440px] mx-auto mb-16 flex justify-between items-end">
+        <section className="py-24 bg-[#0A0A0A]">
+          <div className="px-8 max-w-[1440px] mx-auto mb-16 flex justify-between items-end">
             <div>
               <h2 className="text-4xl font-black uppercase italic tracking-tight mb-4">Event Queue</h2>
               <div className="h-1 w-24 bg-primary" />
             </div>
-            <div className="flex gap-2">
-              <button onClick={() => scrollEvents('left')} className="w-10 h-10 border border-white/10 flex items-center justify-center hover:bg-white/5 text-on-surface-variant transition-all">
-                <span className="material-symbols-outlined text-sm">west</span>
-              </button>
-              <button onClick={() => scrollEvents('right')} className="w-10 h-10 border border-white/10 flex items-center justify-center hover:bg-white/5 text-on-surface-variant transition-all">
-                <span className="material-symbols-outlined text-sm">east</span>
-              </button>
+            <div className="flex items-center gap-4">
+              <Link to="/events" className="text-[10px] font-mono uppercase tracking-widest text-on-surface-variant hover:text-primary transition-colors">
+                View All →
+              </Link>
+              <div className="flex gap-2">
+                <button onClick={() => scrollEvents('left')} className="w-10 h-10 border border-white/10 flex items-center justify-center hover:bg-white/5 text-on-surface-variant transition-all">
+                  <span className="material-symbols-outlined text-sm">west</span>
+                </button>
+                <button onClick={() => scrollEvents('right')} className="w-10 h-10 border border-white/10 flex items-center justify-center hover:bg-white/5 text-on-surface-variant transition-all">
+                  <span className="material-symbols-outlined text-sm">east</span>
+                </button>
+              </div>
             </div>
           </div>
-          <div ref={eventScrollRef} className="flex gap-8 overflow-x-auto pb-12 snap-x no-scrollbar">
-            {/* Event Card 1 */}
-            <div className="flex-none w-[420px] snap-center lab-panel group">
-              <div className="h-60 relative overflow-hidden grayscale group-hover:grayscale-0 transition-all duration-500">
-                <img
-                  alt="Tech conference"
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                  src="https://lh3.googleusercontent.com/aida-public/AB6AXuAXn_-T0r_UBnvyAglmFKHY5SDS8pe33avm0AXhQOgO_pWfjILY84z7cCOrT4CTe95irAZzgKBdWIsp8vx0GeYXYcf_udQPu3L3nIySJOsv7pJBVdGGs6CwVm9O_Azd4FefJSyt2cki706imdO1WQYLTEl_zC2TDvSbK9zOzN75S0gBbzlIQwKEID519kvxQnq51eJSpZE1FV_Au4nYRrLUr8P0hHQGIiFsYLu-xecP_ErTnk6-Yi-o1TEkEU3C3JeIKskJgXfswg"
-                />
-                <div className="absolute top-0 right-0 bg-primary px-3 py-1.5 text-on-primary text-[10px] font-bold uppercase tracking-widest">
-                  WORKSHOP
+          {/* Full-width scroll track — pl-8 for leading indent, no right constraint */}
+          <div ref={eventScrollRef} className="flex gap-6 overflow-x-auto pb-8 snap-x snap-mandatory no-scrollbar pl-8">
+            {events.map((ev) => {
+              const isFull = ev.slots === 0
+              return (
+                <div key={ev.id} className="flex-none w-[380px] snap-start lab-panel group flex flex-col">
+                  <div className="h-48 relative overflow-hidden grayscale group-hover:grayscale-0 transition-all duration-500 shrink-0">
+                    <div className="w-full h-full bg-surface-container-high flex items-center justify-center">
+                      <span className="material-symbols-outlined text-5xl text-on-surface-variant/20">event</span>
+                    </div>
+                    <div className={`absolute top-0 right-0 px-3 py-1.5 text-[10px] font-mono font-bold uppercase tracking-widest ${typeColor[ev.type] ?? 'bg-primary text-on-primary'}`}>
+                      {ev.type}
+                    </div>
+                  </div>
+                  <div className="p-6 border-t border-white/5 flex flex-col flex-1">
+                    <div className="text-[10px] font-bold tracking-[0.3em] mb-3" style={{ color: ev.accent }}>
+                      {ev.date} · {ev.location}
+                    </div>
+                    <h3 className="text-lg font-black uppercase mb-3 leading-tight group-hover:text-primary transition-colors flex-1">
+                      {ev.title}
+                    </h3>
+                    <p className="text-xs text-on-surface-variant mb-5 line-clamp-2 font-body">{ev.description}</p>
+                    <div className="flex items-center justify-between">
+                      <span className={`text-[9px] font-mono px-2 py-0.5 border uppercase ${isFull ? 'border-error/40 text-error' : 'border-white/10 text-on-surface-variant'}`}>
+                        {isFull ? 'Full' : `${ev.slots} slots left`}
+                      </span>
+                      <Link
+                        to={`/events/${ev.id}`}
+                        className="text-[10px] font-black uppercase tracking-[0.2em] flex items-center gap-2 transition-colors"
+                        style={{ color: ev.accent }}
+                      >
+                        View <span className="w-4 h-[1px] bg-current inline-block" />
+                      </Link>
+                    </div>
+                  </div>
                 </div>
-              </div>
-              <div className="p-8 border-t border-white/5">
-                <div className="text-[10px] font-bold text-primary tracking-[0.3em] mb-4">MAY 24, 2026 / 18:00 UTC</div>
-                <h3 className="text-2xl font-black uppercase mb-4 leading-tight group-hover:text-primary transition-colors">
-                  Advanced Rust for Systems Architecture
-                </h3>
-                <p className="text-sm text-on-surface-variant mb-8 line-clamp-2">
-                  Technical dive into memory safety and zero-cost abstractions for production-grade systems.
-                </p>
-                <button className="text-[10px] font-black uppercase tracking-[0.2em] text-primary flex items-center gap-3">
-                  EXECUTE RSVP <span className="w-4 h-[1px] bg-primary inline-block" />
-                </button>
-              </div>
-            </div>
-            {/* Event Card 2 */}
-            <div className="flex-none w-[420px] snap-center lab-panel group">
-              <div className="h-60 relative overflow-hidden grayscale group-hover:grayscale-0 transition-all duration-500">
-                <img
-                  alt="Hackathon team working"
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                  src="https://lh3.googleusercontent.com/aida-public/AB6AXuAv5Fzz17-szQHNuORsgeozQsFTnlFtyDmKKZABXD6NDOwCS8wG9dfPcPugyI2fqMSQ-R3VQ-pZRZ05Hyz1QrHqCvePVKU3pW_ZxHyBegnLjB5e-ja2ZR3c_TYaslwbUtI17NhK2IKwJK7zGiXCAZThPCKhsKzwf13jHViOFnPbe9bL3lDhSiqgQlytPnWaoJl0g3h_oJLmbjmssITVnJ1E_29Gous4Rw_EVZpKUm6rwGFCxl1vEA9p7WrBp5jU0HovIs95LTFRlQ"
-                />
-                <div className="absolute top-0 right-0 bg-white px-3 py-1.5 text-black text-[10px] font-bold uppercase tracking-widest">
-                  HACKATHON
-                </div>
-              </div>
-              <div className="p-8 border-t border-white/5">
-                <div className="text-[10px] font-bold text-on-surface-variant tracking-[0.3em] mb-4">JUN 02, 2026 / 09:00 UTC</div>
-                <h3 className="text-2xl font-black uppercase mb-4 leading-tight group-hover:text-primary transition-colors">
-                  Cybersecurity 48H Lockdown Challenge
-                </h3>
-                <p className="text-sm text-on-surface-variant mb-8 line-clamp-2">
-                  High-intensity security simulation focusing on real-time patching and threat mitigation.
-                </p>
-                <button className="text-[10px] font-black uppercase tracking-[0.2em] text-on-surface-variant hover:text-primary flex items-center gap-3 transition-colors">
-                  JOIN QUEUE <span className="w-4 h-[1px] bg-current inline-block" />
-                </button>
-              </div>
-            </div>
-            {/* Event Card 3 */}
-            <div className="flex-none w-[420px] snap-center lab-panel group">
-              <div className="h-60 relative overflow-hidden grayscale group-hover:grayscale-0 transition-all duration-500">
-                <img
-                  alt="AI visualization"
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                  src="https://lh3.googleusercontent.com/aida-public/AB6AXuCyENExTqDtoPgcm5nWzFqYCTIRFSbzmt41nIWHDgRTjWX8uSafcHb9rBFoGB6Al9amVPPF-QZXmHuAyme642ZKhf_n2v2esKFcgW1ys-uVfpGshzCH12SU_EOcSh7UYYNO0jR1Gv2Z1Q8wr203PGk1GiF8eqdL9CguEVeKMU0Hswl6olj5zZbXehtJj2hbmzutKkCZqOTyZNu6kg3D8Hi8as7IpnQUi-pdE4-DdckYYp8oTWVFvJgT-_xVHKe4AHajTnloCcvQfg"
-                />
-                <div className="absolute top-0 right-0 bg-primary px-3 py-1.5 text-on-primary text-[10px] font-bold uppercase tracking-widest">
-                  MEETUP
-                </div>
-              </div>
-              <div className="p-8 border-t border-white/5">
-                <div className="text-[10px] font-bold text-primary tracking-[0.3em] mb-4">JUN 15, 2026 / 14:00 UTC</div>
-                <h3 className="text-2xl font-black uppercase mb-4 leading-tight group-hover:text-primary transition-colors">
-                  LLM Ethics &amp; Deployment Strategies
-                </h3>
-                <p className="text-sm text-on-surface-variant mb-8 line-clamp-2">
-                  Deep dive into productionizing large models while maintaining ethical guardrails.
-                </p>
-                <button className="text-[10px] font-black uppercase tracking-[0.2em] text-primary flex items-center gap-3">
-                  RESERVE SLOT <span className="w-4 h-[1px] bg-primary inline-block" />
-                </button>
-              </div>
-            </div>
+              )
+            })}
+            {/* Right padding sentinel */}
+            <div className="flex-none w-8 shrink-0" />
           </div>
         </section>
 
