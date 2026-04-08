@@ -17,7 +17,13 @@ const PORT = process.env.PORT ?? 4000
 
 // Security + parsing
 app.use(helmet())
-app.use(cors({ origin: true, credentials: true }))
+
+// In dev, allow all origins. In production, restrict to the Vercel frontend URL.
+const allowedOrigins = process.env.FRONTEND_URL
+  ? [process.env.FRONTEND_URL]
+  : true  // allow all in dev
+
+app.use(cors({ origin: allowedOrigins, credentials: true }))
 app.use(express.json())
 
 // Health check

@@ -1,7 +1,13 @@
 import axios from 'axios'
 
+// In dev: Vite proxies /api → localhost:4000 (see vite.config.ts)
+// In production: set VITE_API_URL to your Railway backend URL
+const baseURL = import.meta.env.VITE_API_URL
+  ? `${import.meta.env.VITE_API_URL}/api`
+  : '/api'
+
 export const api = axios.create({
-  baseURL: '/api',   // Vite dev server proxies /api → http://localhost:4000/api
+  baseURL,
   headers: { 'Content-Type': 'application/json' },
 })
 
