@@ -1,5 +1,7 @@
 # Code Dynamos
 
+**Live:** [https://taikyoku.vercel.app](https://taikyoku.vercel.app)
+
 Official platform for **Code Dynamos** — a developer community hub built for Web Weave '26. Features event management, coding sprints, member profiles, leaderboard, project showcases, and a full admin panel.
 
 ## Stack
