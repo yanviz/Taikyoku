@@ -1,11 +1,10 @@
 import { Router } from 'express'
-import { gallery } from '../data/gallery'
+import { db, gallery } from '../db'
 
 const router = Router()
 
-// GET /api/gallery
-router.get('/', (_req, res) => {
-  res.json(gallery)
+router.get('/', async (_req, res) => {
+  res.json(await db.select().from(gallery))
 })
 
 export default router

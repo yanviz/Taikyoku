@@ -1,219 +1,155 @@
 import { Router } from 'express'
+import { eq, sql } from 'drizzle-orm'
+import { db, users, events, challenges, projects, gallery } from '../db'
 import { authenticate, adminOnly } from '../middleware/auth'
-import { users } from '../data/users'
-import { events } from '../data/events'
-import { challenges } from '../data/challenges'
-import { projects } from '../data/projects'
-import { gallery } from '../data/gallery'
 import type { Event, Challenge, Project, GalleryPhoto } from '../types'
 
 const router = Router()
-
-// All admin routes require authentication + admin role
 router.use(authenticate, adminOnly)
 
 // ── Stats ──────────────────────────────────────────────────────────────────
+router.get('/stats', async (_req, res) => {
+  const [{ totalMembers }]   = await db.select({ totalMembers:   sql<number>`count(*)` }).from(users)
+  const [{ totalEvents }]    = await db.select({ totalEvents:    sql<number>`count(*)` }).from(events)
+  const [{ activeEvents }]   = await db.select({ activeEvents:   sql<number>`count(*)` }).from(events).where(sql`${events.status} != 'Full'`)
+  const [{ totalChallenges }]= await db.select({ totalChallenges:sql<number>`count(*)` }).from(challenges)
+  const [{ totalProjects }]  = await db.select({ totalProjects:  sql<number>`count(*)` }).from(projects)
+  const [{ totalXp }]        = await db.select({ totalXp:        sql<number>`coalesce(sum(${users.xp}), 0)` }).from(users)
 
-router.get('/stats', (_req, res) => {
-  res.json({
-    totalMembers: users.length,
-    activeEvents: events.filter((e) => e.status !== 'Full').length,
-    totalEvents: events.length,
-    totalChallenges: challenges.length,
-    totalProjects: projects.length,
-    totalXpAwarded: users.reduce((sum, u) => sum + u.xp, 0),
-  })
+  res.json({ totalMembers, activeEvents, totalEvents, totalChallenges, totalProjects, totalXpAwarded: totalXp })
 })
 
 // ── Members ────────────────────────────────────────────────────────────────
-
-router.get('/members', (_req, res) => {
-  res.json(
-    users.map((u) => ({
-      id: u.id,
-      email: u.email,
-      name: u.name,
-      role: u.role,
-      xp: u.xp,
-      rank: u.rank,
-      badge: u.badge,
-      track: u.track,
-      streak: u.streak,
-      challenges: u.challenges,
-      createdAt: u.createdAt,
-    }))
-  )
+router.get('/members', async (_req, res) => {
+  const all = await db.select({
+    id: users.id, email: users.email, name: users.name, role: users.role,
+    xp: users.xp, rank: users.rank, badge: users.badge, track: users.track,
+    streak: users.streak, challenges: users.challenges, createdAt: users.createdAt,
+  }).from(users)
+  res.json(all)
 })
 
-router.patch('/members/:id/role', (req, res): void => {
+router.patch('/members/:id/role', async (req, res): Promise<void> => {
   const { role } = req.body as { role?: 'member' | 'admin' }
-  const user = users.find((u) => u.id === req.params.id)
-  if (!user) { res.status(404).json({ error: 'User not found' }); return }
   if (role !== 'member' && role !== 'admin') { res.status(400).json({ error: 'Role must be "member" or "admin"' }); return }
-  user.role = role
-  res.json({ id: user.id, role: user.role })
+  const [updated] = await db.update(users).set({ role }).where(eq(users.id, req.params.id)).returning()
+  if (!updated) { res.status(404).json({ error: 'User not found' }); return }
+  res.json({ id: updated.id, role: updated.role })
 })
 
 // ── Events CRUD ────────────────────────────────────────────────────────────
-
-router.get('/events', (_req, res) => {
-  res.json(events)
+router.get('/events', async (_req, res) => {
+  res.json(await db.select().from(events))
 })
 
-router.post('/events', (req, res): void => {
-  const { type, date, title, description, slots, total, status, location, accent } =
-    req.body as Partial<Event>
-
+router.post('/events', async (req, res): Promise<void> => {
+  const { type, date, title, description, slots, total, status, location, accent, image } = req.body as Partial<Event>
   if (!type || !date || !title || !description || slots == null || total == null) {
-    res.status(400).json({ error: 'type, date, title, description, slots, total are required' })
-    return
+    res.status(400).json({ error: 'type, date, title, description, slots, total are required' }); return
   }
-
-  const newEvent: Event = {
-    id: `ev${Date.now()}`,
-    type,
-    date,
-    title,
-    description,
-    slots: Number(slots),
-    total: Number(total),
-    status: status ?? 'Open',
-    location: location ?? 'TBD',
-    accent: accent ?? '#d3ef57',
-  }
-  events.push(newEvent)
-  res.status(201).json(newEvent)
+  const [ev] = await db.insert(events).values({
+    id: `ev${Date.now()}`, type, date, title, description,
+    slots: Number(slots), total: Number(total),
+    status: status ?? 'Open', location: location ?? 'TBD',
+    accent: accent ?? '#d3ef57', image: image ?? null,
+  }).returning()
+  res.status(201).json(ev)
 })
 
-router.patch('/events/:id', (req, res): void => {
-  const event = events.find((e) => e.id === req.params.id)
-  if (!event) { res.status(404).json({ error: 'Event not found' }); return }
+router.patch('/events/:id', async (req, res): Promise<void> => {
   const fields = req.body as Partial<Event>
-  Object.assign(event, fields)
-  res.json(event)
+  const [updated] = await db.update(events).set(fields).where(eq(events.id, req.params.id)).returning()
+  if (!updated) { res.status(404).json({ error: 'Event not found' }); return }
+  res.json(updated)
 })
 
-router.delete('/events/:id', (req, res): void => {
-  const idx = events.findIndex((e) => e.id === req.params.id)
-  if (idx === -1) { res.status(404).json({ error: 'Event not found' }); return }
-  events.splice(idx, 1)
+router.delete('/events/:id', async (req, res): Promise<void> => {
+  const [deleted] = await db.delete(events).where(eq(events.id, req.params.id)).returning()
+  if (!deleted) { res.status(404).json({ error: 'Event not found' }); return }
   res.json({ message: 'Deleted' })
 })
 
 // ── Challenges CRUD ────────────────────────────────────────────────────────
-
-router.get('/challenges', (_req, res) => {
-  res.json(challenges)
+router.get('/challenges', async (_req, res) => {
+  res.json(await db.select().from(challenges))
 })
 
-router.post('/challenges', (req, res): void => {
-  const { title, difficulty, xp, pool, tags, description } =
-    req.body as Partial<Challenge>
-
+router.post('/challenges', async (req, res): Promise<void> => {
+  const { title, difficulty, xp, pool, tags, description } = req.body as Partial<Challenge>
   if (!title || !difficulty || xp == null || pool == null || !description) {
-    res.status(400).json({ error: 'title, difficulty, xp, pool, description are required' })
-    return
+    res.status(400).json({ error: 'title, difficulty, xp, pool, description are required' }); return
   }
-
-  const newChallenge: Challenge = {
-    id: `ch${Date.now()}`,
-    title,
+  const [ch] = await db.insert(challenges).values({
+    id: `ch${Date.now()}`, title,
     difficulty: difficulty as Challenge['difficulty'],
-    xp: Number(xp),
-    pool: Number(pool),
-    completions: 0,
-    participants: 0,
-    tags: tags ?? [],
-    description,
-  }
-  challenges.push(newChallenge)
-  res.status(201).json(newChallenge)
+    xp: Number(xp), pool: Number(pool),
+    completions: 0, participants: 0,
+    tags: tags ?? [], description,
+  }).returning()
+  res.status(201).json(ch)
 })
 
-router.patch('/challenges/:id', (req, res): void => {
-  const challenge = challenges.find((c) => c.id === req.params.id)
-  if (!challenge) { res.status(404).json({ error: 'Challenge not found' }); return }
+router.patch('/challenges/:id', async (req, res): Promise<void> => {
   const fields = req.body as Partial<Challenge>
-  Object.assign(challenge, fields)
-  res.json(challenge)
+  const [updated] = await db.update(challenges).set(fields).where(eq(challenges.id, req.params.id)).returning()
+  if (!updated) { res.status(404).json({ error: 'Challenge not found' }); return }
+  res.json(updated)
 })
 
-router.delete('/challenges/:id', (req, res): void => {
-  const idx = challenges.findIndex((c) => c.id === req.params.id)
-  if (idx === -1) { res.status(404).json({ error: 'Challenge not found' }); return }
-  challenges.splice(idx, 1)
+router.delete('/challenges/:id', async (req, res): Promise<void> => {
+  const [deleted] = await db.delete(challenges).where(eq(challenges.id, req.params.id)).returning()
+  if (!deleted) { res.status(404).json({ error: 'Challenge not found' }); return }
   res.json({ message: 'Deleted' })
 })
 
 // ── Gallery CRUD ───────────────────────────────────────────────────────────
-
-router.get('/gallery', (_req, res) => {
-  res.json(gallery)
+router.get('/gallery', async (_req, res) => {
+  res.json(await db.select().from(gallery))
 })
 
-router.post('/gallery', (req, res): void => {
+router.post('/gallery', async (req, res): Promise<void> => {
   const { tag, year, label, span, img } = req.body as Partial<GalleryPhoto>
   if (!tag || !year || !label || !img) {
-    res.status(400).json({ error: 'tag, year, label, img are required' })
-    return
+    res.status(400).json({ error: 'tag, year, label, img are required' }); return
   }
-  const newPhoto: GalleryPhoto = {
-    id: `g${Date.now()}`,
-    tag,
-    year,
-    label,
-    span: span ?? '',
-    img,
-  }
-  gallery.push(newPhoto)
-  res.status(201).json(newPhoto)
+  const [photo] = await db.insert(gallery).values({ id: `g${Date.now()}`, tag, year, label, span: span ?? '', img }).returning()
+  res.status(201).json(photo)
 })
 
-router.delete('/gallery/:id', (req, res): void => {
-  const idx = gallery.findIndex((g) => g.id === req.params.id)
-  if (idx === -1) { res.status(404).json({ error: 'Photo not found' }); return }
-  gallery.splice(idx, 1)
+router.delete('/gallery/:id', async (req, res): Promise<void> => {
+  const [deleted] = await db.delete(gallery).where(eq(gallery.id, req.params.id)).returning()
+  if (!deleted) { res.status(404).json({ error: 'Photo not found' }); return }
   res.json({ message: 'Deleted' })
 })
 
 // ── Projects CRUD ──────────────────────────────────────────────────────────
-
-router.get('/projects', (_req, res) => {
-  res.json(projects)
+router.get('/projects', async (_req, res) => {
+  res.json(await db.select().from(projects))
 })
 
-router.post('/projects', (req, res): void => {
+router.post('/projects', async (req, res): Promise<void> => {
   const { title, description, status, tech, stars, forks, img } = req.body as Partial<Project>
   if (!title || !description || !status) {
-    res.status(400).json({ error: 'title, description, status are required' })
-    return
+    res.status(400).json({ error: 'title, description, status are required' }); return
   }
-  const newProject: Project = {
-    id: `p${Date.now()}`,
-    title,
-    description,
+  const [proj] = await db.insert(projects).values({
+    id: `p${Date.now()}`, title, description,
     status: status as Project['status'],
-    tech: tech ?? [],
-    stars: Number(stars ?? 0),
-    forks: Number(forks ?? 0),
-    img: img ?? '',
-  }
-  projects.push(newProject)
-  res.status(201).json(newProject)
+    tech: tech ?? [], stars: Number(stars ?? 0), forks: Number(forks ?? 0), img: img ?? '',
+  }).returning()
+  res.status(201).json(proj)
 })
 
-router.patch('/projects/:id', (req, res): void => {
-  const project = projects.find((p) => p.id === req.params.id)
-  if (!project) { res.status(404).json({ error: 'Project not found' }); return }
+router.patch('/projects/:id', async (req, res): Promise<void> => {
   const fields = req.body as Partial<Project>
-  Object.assign(project, fields)
-  res.json(project)
+  const [updated] = await db.update(projects).set(fields).where(eq(projects.id, req.params.id)).returning()
+  if (!updated) { res.status(404).json({ error: 'Project not found' }); return }
+  res.json(updated)
 })
 
-router.delete('/projects/:id', (req, res): void => {
-  const idx = projects.findIndex((p) => p.id === req.params.id)
-  if (idx === -1) { res.status(404).json({ error: 'Project not found' }); return }
-  projects.splice(idx, 1)
+router.delete('/projects/:id', async (req, res): Promise<void> => {
+  const [deleted] = await db.delete(projects).where(eq(projects.id, req.params.id)).returning()
+  if (!deleted) { res.status(404).json({ error: 'Project not found' }); return }
   res.json({ message: 'Deleted' })
 })
 

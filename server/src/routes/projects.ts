@@ -1,11 +1,10 @@
 import { Router } from 'express'
-import { projects } from '../data/projects'
+import { db, projects } from '../db'
 
 const router = Router()
 
-// GET /api/projects
-router.get('/', (_req, res) => {
-  res.json(projects)
+router.get('/', async (_req, res) => {
+  res.json(await db.select().from(projects))
 })
 
 export default router
