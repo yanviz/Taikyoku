@@ -1,4 +1,4 @@
-import { type FormEvent, useState } from 'react'
+import { useState, useMemo } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 
@@ -10,6 +10,30 @@ const tracks = [
   { id: 'Fullstack', label: 'Fullstack', icon: 'hub' },
 ]
 
+interface PasswordCheck {
+  label: string
+  pass: boolean
+}
+
+function getPasswordChecks(pw: string): PasswordCheck[] {
+  return [
+    { label: 'At least 8 characters', pass: pw.length >= 8 },
+    { label: 'Uppercase letter (A–Z)', pass: /[A-Z]/.test(pw) },
+    { label: 'Lowercase letter (a–z)', pass: /[a-z]/.test(pw) },
+    { label: 'Number (0–9)', pass: /[0-9]/.test(pw) },
+    { label: 'Special character (!@#$…)', pass: /[^A-Za-z0-9]/.test(pw) },
+  ]
+}
+
+function getStrength(checks: PasswordCheck[]): { score: number; label: string; color: string } {
+  const score = checks.filter(c => c.pass).length
+  if (score <= 1) return { score, label: 'VERY WEAK', color: '#ef4444' }
+  if (score === 2) return { score, label: 'WEAK', color: '#f97316' }
+  if (score === 3) return { score, label: 'FAIR', color: '#eab308' }
+  if (score === 4) return { score, label: 'STRONG', color: '#84cc16' }
+  return { score, label: 'VERY STRONG', color: '#d3ef57' }
+}
+
 const Signup = () => {
   const { signup, isLoading } = useAuth()
   const navigate = useNavigate()
@@ -20,11 +44,21 @@ const Signup = () => {
   const [confirm, setConfirm] = useState('')
   const [selectedTrack, setSelectedTrack] = useState('')
   const [error, setError] = useState('')
+  const [showChecks, setShowChecks] = useState(false)
 
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+  const checks = useMemo(() => getPasswordChecks(password), [password])
+  const strength = useMemo(() => getStrength(checks), [checks])
+  const allChecksPassed = checks.every(c => c.pass)
+
+  const handleSubmit = async (e: { preventDefault(): void }) => {
     e.preventDefault()
     setError('')
 
+    if (!allChecksPassed) {
+      setError('Password does not meet all requirements.')
+      setShowChecks(true)
+      return
+    }
     if (password !== confirm) {
       setError('Passwords do not match.')
       return
@@ -125,47 +159,107 @@ const Signup = () => {
               </div>
             </div>
 
-            {/* Password row */}
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label className="font-mono text-[10px] uppercase tracking-[0.2em] text-on-surface-variant ml-1" htmlFor="password">
-                  Cipher Key
-                </label>
-                <div className="relative group">
-                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none border-r border-outline-variant/30">
-                    <span className="material-symbols-outlined text-on-surface-variant group-focus-within:text-primary transition-colors text-sm">key</span>
-                  </div>
-                  <input
-                    className="w-full bg-surface-variant/50 border border-outline-variant focus:border-primary focus:ring-0 rounded-sm py-4 pl-14 pr-4 text-on-surface font-body placeholder-on-surface-variant/30 transition-all text-sm"
-                    id="password"
-                    name="password"
-                    placeholder="••••••••"
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                  />
+            {/* Password */}
+            <div className="space-y-2">
+              <label className="font-mono text-[10px] uppercase tracking-[0.2em] text-on-surface-variant ml-1" htmlFor="password">
+                Cipher Key
+              </label>
+              <div className="relative group">
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none border-r border-outline-variant/30">
+                  <span className="material-symbols-outlined text-on-surface-variant group-focus-within:text-primary transition-colors text-sm">key</span>
                 </div>
+                <input
+                  className="w-full bg-surface-variant/50 border border-outline-variant focus:border-primary focus:ring-0 rounded-sm py-4 pl-14 pr-4 text-on-surface font-body placeholder-on-surface-variant/30 transition-all text-sm"
+                  id="password"
+                  name="password"
+                  placeholder="••••••••"
+                  type="password"
+                  value={password}
+                  onChange={(e) => { setPassword(e.target.value); setShowChecks(true) }}
+                  onFocus={() => setShowChecks(true)}
+                  required
+                />
               </div>
-              <div className="space-y-2">
-                <label className="font-mono text-[10px] uppercase tracking-[0.2em] text-on-surface-variant ml-1" htmlFor="confirm">
-                  Confirm
-                </label>
-                <div className="relative group">
-                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none border-r border-outline-variant/30">
-                    <span className="material-symbols-outlined text-on-surface-variant group-focus-within:text-primary transition-colors text-sm">lock</span>
+
+              {/* Strength meter */}
+              {showChecks && password.length > 0 && (
+                <div className="space-y-2 pt-1">
+                  {/* Bar */}
+                  <div className="flex gap-1">
+                    {[1, 2, 3, 4, 5].map((i) => (
+                      <div
+                        key={i}
+                        className="h-1 flex-1 rounded-full transition-all duration-300"
+                        style={{
+                          backgroundColor: i <= strength.score ? strength.color : 'rgba(255,255,255,0.1)',
+                        }}
+                      />
+                    ))}
                   </div>
-                  <input
-                    className="w-full bg-surface-variant/50 border border-outline-variant focus:border-primary focus:ring-0 rounded-sm py-4 pl-14 pr-4 text-on-surface font-body placeholder-on-surface-variant/30 transition-all text-sm"
-                    id="confirm"
-                    name="confirm"
-                    placeholder="••••••••"
-                    type="password"
-                    value={confirm}
-                    onChange={(e) => setConfirm(e.target.value)}
-                    required
-                  />
+                  <div className="flex justify-between items-center">
+                    <span className="font-mono text-[9px] tracking-[0.2em]" style={{ color: strength.color }}>
+                      STRENGTH: {strength.label}
+                    </span>
+                  </div>
+
+                  {/* Requirements checklist */}
+                  <div className="grid grid-cols-2 gap-x-4 gap-y-1 pt-1">
+                    {checks.map((c) => (
+                      <div key={c.label} className="flex items-center gap-1.5">
+                        <span
+                          className="material-symbols-outlined text-xs"
+                          style={{ color: c.pass ? '#d3ef57' : 'rgba(255,255,255,0.25)', fontSize: '13px' }}
+                        >
+                          {c.pass ? 'check_circle' : 'radio_button_unchecked'}
+                        </span>
+                        <span
+                          className="font-mono text-[9px] tracking-wide"
+                          style={{ color: c.pass ? 'rgba(255,255,255,0.7)' : 'rgba(255,255,255,0.3)' }}
+                        >
+                          {c.label}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
+              )}
+            </div>
+
+            {/* Confirm password */}
+            <div className="space-y-2">
+              <label className="font-mono text-[10px] uppercase tracking-[0.2em] text-on-surface-variant ml-1" htmlFor="confirm">
+                Confirm Cipher Key
+              </label>
+              <div className="relative group">
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none border-r border-outline-variant/30">
+                  <span className="material-symbols-outlined text-on-surface-variant group-focus-within:text-primary transition-colors text-sm">lock</span>
+                </div>
+                <input
+                  className={`w-full bg-surface-variant/50 border focus:ring-0 rounded-sm py-4 pl-14 pr-4 text-on-surface font-body placeholder-on-surface-variant/30 transition-all text-sm ${
+                    confirm.length > 0
+                      ? confirm === password
+                        ? 'border-[#84cc16]'
+                        : 'border-error/60'
+                      : 'border-outline-variant focus:border-primary'
+                  }`}
+                  id="confirm"
+                  name="confirm"
+                  placeholder="••••••••"
+                  type="password"
+                  value={confirm}
+                  onChange={(e) => setConfirm(e.target.value)}
+                  required
+                />
+                {confirm.length > 0 && (
+                  <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
+                    <span
+                      className="material-symbols-outlined text-sm"
+                      style={{ color: confirm === password ? '#84cc16' : '#ef4444', fontSize: '16px' }}
+                    >
+                      {confirm === password ? 'check_circle' : 'cancel'}
+                    </span>
+                  </div>
+                )}
               </div>
             </div>
 
