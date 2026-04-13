@@ -91,11 +91,9 @@ export interface GalleryPhoto {
   img: string
 }
 
-// Extend Express Request to include auth user
+// Extend Express.User so passport and our JWT middleware share the same type
 declare global {
   namespace Express {
-    interface Request {
-      user?: JwtPayload
-    }
+    interface User extends JwtPayload {}
   }
 }

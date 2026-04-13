@@ -4,6 +4,7 @@ import { Strategy as GoogleStrategy } from 'passport-google-oauth20'
 import { eq } from 'drizzle-orm'
 import { db, users } from '../db'
 import { signToken } from '../middleware/auth'
+import type { JwtPayload } from '../types'
 
 const FRONTEND_URL = process.env.FRONTEND_URL ?? 'http://localhost:5173'
 
@@ -39,7 +40,14 @@ passport.use(
           user = created
         }
 
-        done(null, user)
+        // Map DB user → JwtPayload shape (Express.User)
+        const payload: JwtPayload = {
+          userId: user.id,
+          email: user.email,
+          name: user.name,
+          role: user.role as 'member' | 'admin',
+        }
+        done(null, payload)
       } catch (err) {
         done(err as Error)
       }
@@ -48,8 +56,8 @@ passport.use(
 )
 
 // Passport serialize/deserialize (minimal — we use JWTs, not sessions)
-passport.serializeUser((user: Express.User, done) => done(null, (user as { id: string }).id))
-passport.deserializeUser((id, done) => done(null, { id } as Express.User))
+passport.serializeUser((user, done) => done(null, (user as JwtPayload).userId))
+passport.deserializeUser((id, done) => done(null, { userId: id } as JwtPayload))
 
 const router = Router()
 
@@ -61,14 +69,13 @@ router.get(
   '/google/callback',
   passport.authenticate('google', { session: false, failureRedirect: `${FRONTEND_URL}/login?error=oauth_failed` }),
   (req, res) => {
-    const user = req.user as { id: string; email: string; name: string; role: string }
+    const user = req.user!
     const token = signToken({
-      userId: user.id,
+      userId: user.userId,
       email: user.email,
       name: user.name,
-      role: user.role as 'member' | 'admin',
+      role: user.role,
     })
-    // Redirect to frontend with token in query string — frontend reads it and stores in localStorage
     res.redirect(`${FRONTEND_URL}/oauth-callback?token=${token}`)
   }
 )
