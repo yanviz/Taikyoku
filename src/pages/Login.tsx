@@ -1,6 +1,7 @@
-import { type FormEvent, useState } from 'react'
+import { useState } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import { backendURL } from '../lib/api'
 
 const Login = () => {
   const { login, isLoading } = useAuth()
@@ -12,7 +13,7 @@ const Login = () => {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
 
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: { preventDefault(): void }) => {
     e.preventDefault()
     setError('')
     try {
@@ -150,14 +151,17 @@ const Login = () => {
 
           {/* Social Logins */}
           <div className="grid grid-cols-2 gap-4 relative z-10">
-            <button className="flex items-center justify-center gap-3 bg-surface-variant border border-outline-variant hover:border-primary/50 py-3 rounded-sm transition-all duration-200 group">
+            <a
+              href={`${backendURL}/api/auth/google`}
+              className="flex items-center justify-center gap-3 bg-surface-variant border border-outline-variant hover:border-primary/50 py-3 rounded-sm transition-all duration-200 group"
+            >
               <img
                 alt="Google"
                 className="w-4 h-4 grayscale group-hover:grayscale-0 transition-all"
                 src="https://lh3.googleusercontent.com/aida-public/AB6AXuDnbNwy7JyqJn0T1_m7VUuxtMwFFY4HUDUiWLRa-r2LzwpYvIqONPpE8-koSicUwFNYs4uNsbfp8CAs4_ZTm-EhjoI9Zovmy7xxyIpmYz9m45veLM04E763GSzSfXllH95Q7qI1Zav-fOs58BWQxzsNlcw4veYLabRdC-ZII5NiWU5ICwsB0NmXFODgYSUXJ123OUAP-T3Heo_V0ILhd-y4NbSRhcqVmuz3FtmBr90oW823fuh6P3nUaAbZ-czQ7nCQwOnmM7B2eQ"
               />
               <span className="font-label text-[10px] uppercase tracking-wider text-on-surface">Google</span>
-            </button>
+            </a>
             <button className="flex items-center justify-center gap-3 bg-surface-variant border border-outline-variant hover:border-primary/50 py-3 rounded-sm transition-all duration-200 group">
               <span className="material-symbols-outlined text-on-surface group-hover:text-primary text-sm transition-colors">
                 terminal

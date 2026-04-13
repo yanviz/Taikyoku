@@ -21,6 +21,7 @@ interface AuthContextValue {
   isLoading: boolean
   login: (email: string, password: string) => Promise<void>
   signup: (data: { email: string; name: string; password: string; track: string }) => Promise<void>
+  loginWithToken: (token: string) => void
   logout: () => void
   isAdmin: boolean
 }
@@ -81,6 +82,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [])
 
+  // Called by OAuthCallback after Google redirect
+  const loginWithToken = useCallback((jwt: string) => {
+    localStorage.setItem('cd_token', jwt)
+    setToken(jwt)
+    // /auth/me will fire via the effect above and populate user
+  }, [])
+
   const logout = useCallback(() => {
     localStorage.removeItem('cd_token')
     localStorage.removeItem('cd_user')
@@ -89,7 +97,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, [])
 
   return (
-    <AuthContext.Provider value={{ user, token, isLoading, login, signup, logout, isAdmin: user?.role === 'admin' }}>
+    <AuthContext.Provider value={{ user, token, isLoading, login, signup, loginWithToken, logout, isAdmin: user?.role === 'admin' }}>
       {children}
     </AuthContext.Provider>
   )

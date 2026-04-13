@@ -1,8 +1,11 @@
 import express from 'express'
 import cors from 'cors'
 import helmet from 'helmet'
+import session from 'express-session'
+import passport from 'passport'
 
 import authRouter from './routes/auth'
+import oauthRouter from './routes/oauth'
 import eventsRouter from './routes/events'
 import challengesRouter from './routes/challenges'
 import teamRouter from './routes/team'
@@ -26,11 +29,22 @@ const allowedOrigins = process.env.FRONTEND_URL
 app.use(cors({ origin: allowedOrigins, credentials: true }))
 app.use(express.json())
 
+// Session (only needed for the OAuth redirect flow)
+app.use(session({
+  secret: process.env.SESSION_SECRET ?? 'dev_session_secret',
+  resave: false,
+  saveUninitialized: false,
+  cookie: { secure: process.env.NODE_ENV === 'production', maxAge: 60_000 },
+}))
+app.use(passport.initialize())
+app.use(passport.session())
+
 // Health check
 app.get('/health', (_req, res) => res.json({ status: 'ok', ts: new Date().toISOString() }))
 
 // Routes
 app.use('/api/auth', authRouter)
+app.use('/api/auth', oauthRouter)
 app.use('/api/events', eventsRouter)
 app.use('/api/challenges', challengesRouter)
 app.use('/api/team', teamRouter)

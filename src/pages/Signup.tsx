@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import { backendURL } from '../lib/api'
 
 const tracks = [
   { id: 'Frontend', label: 'Frontend', icon: 'web' },
@@ -298,6 +299,29 @@ const Signup = () => {
               )}
             </button>
           </form>
+
+          {/* Google OAuth */}
+          <div className="relative my-8">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-outline-variant/30" />
+            </div>
+            <div className="relative flex justify-center text-[10px] uppercase">
+              <span className="bg-surface-container-lowest px-4 text-on-surface-variant font-mono tracking-[0.2em]">
+                Or continue with
+              </span>
+            </div>
+          </div>
+          <a
+            href={`${backendURL}/api/auth/google`}
+            className="flex items-center justify-center gap-3 w-full bg-surface-variant border border-outline-variant hover:border-primary/50 py-3 rounded-sm transition-all duration-200 group relative z-10"
+          >
+            <img
+              alt="Google"
+              className="w-4 h-4 grayscale group-hover:grayscale-0 transition-all"
+              src="https://lh3.googleusercontent.com/aida-public/AB6AXuDnbNwy7JyqJn0T1_m7VUuxtMwFFY4HUDUiWLRa-r2LzwpYvIqONPpE8-koSicUwFNYs4uNsbfp8CAs4_ZTm-EhjoI9Zovmy7xxyIpmYz9m45veLM04E763GSzSfXllH95Q7qI1Zav-fOs58BWQxzsNlcw4veYLabRdC-ZII5NiWU5ICwsB0NmXFODgYSUXJ123OUAP-T3Heo_V0ILhd-y4NbSRhcqVmuz3FtmBr90oW823fuh6P3nUaAbZ-czQ7nCQwOnmM7B2eQ"
+            />
+            <span className="font-mono text-[10px] uppercase tracking-wider text-on-surface">Continue with Google</span>
+          </a>
 
           <p className="text-center mt-8 font-mono text-[11px] text-on-surface-variant tracking-wide relative z-10">
             ALREADY REGISTERED?{' '}

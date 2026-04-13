@@ -18,6 +18,7 @@ import LeaderboardPage from './pages/LeaderboardPage'
 import DashboardPage from './pages/DashboardPage'
 import EventDetailPage from './pages/EventDetailPage'
 import ChallengeDetailPage from './pages/ChallengeDetailPage'
+import OAuthCallback from './pages/OAuthCallback'
 
 const queryClient = new QueryClient()
 
@@ -33,6 +34,7 @@ function App() {
             <Route path="/" element={<HomePage />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
+            <Route path="/oauth-callback" element={<OAuthCallback />} />
             <Route path="/events" element={<EventsPage />} />
             <Route path="/events/:id" element={<EventDetailPage />} />
             <Route path="/challenges" element={<ChallengesPage />} />
